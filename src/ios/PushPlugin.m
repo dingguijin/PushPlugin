@@ -43,6 +43,134 @@
     [self successWithMessage:@"unregistered"];
 }
 
+- (void)registerEight:(CDVInvokedUrlCommand*)command;
+{
+    self.callbackId = command.callbackId;
+    
+    NSMutableDictionary* options = [command.arguments objectAtIndex:0];
+    
+    UIUserNotificationType userNotificationTypes = UIUserNotificationTypeNone;
+    
+    id badgeArg = [options objectForKey:@"badge"];
+    id soundArg = [options objectForKey:@"sound"];
+    id alertArg = [options objectForKey:@"alert"];
+    
+    if ([badgeArg isKindOfClass:[NSString class]])
+    {
+        if ([badgeArg isEqualToString:@"true"]) {
+            userNotificationTypes |= UIUserNotificationTypeBadge;
+        }
+    }
+    else if ([badgeArg boolValue]) {
+        userNotificationTypes |= UIUserNotificationTypeBadge;
+    }
+    
+    if ([soundArg isKindOfClass:[NSString class]])
+    {
+        if ([soundArg isEqualToString:@"true"]) {
+            userNotificationTypes |= UIUserNotificationTypeSound;
+        }
+    }
+    else if ([soundArg boolValue]) {
+        userNotificationTypes |= UIUserNotificationTypeSound;
+    }
+    
+    if ([alertArg isKindOfClass:[NSString class]])
+    {
+        if ([alertArg isEqualToString:@"true"]) {
+            userNotificationTypes |= UIUserNotificationTypeAlert;
+        }
+    }
+    else if ([alertArg boolValue]) {
+        userNotificationTypes |= UIUserNotificationTypeAlert;
+    }
+    
+    userNotificationTypes |= UIUserNotificationActivationModeBackground;
+    
+    self.callback = [options objectForKey:@"ecb"];
+    
+    
+    isInline = NO;
+    
+    UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes categories:nil];
+    [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+    [[UIApplication sharedApplication] registerForRemoteNotifications];
+ 
+    if (notificationMessage)			// if there is a pending startup notification
+        [self notificationReceived];	// go ahead and process it
+
+}
+
+
+- (void)registerOther:(CDVInvokedUrlCommand*)command;
+{
+    self.callbackId = command.callbackId;
+    
+    NSMutableDictionary* options = [command.arguments objectAtIndex:0];
+    
+    UIRemoteNotificationType notificationTypes = UIRemoteNotificationTypeNone;
+    
+    id badgeArg = [options objectForKey:@"badge"];
+    id soundArg = [options objectForKey:@"sound"];
+    id alertArg = [options objectForKey:@"alert"];
+    
+    if ([badgeArg isKindOfClass:[NSString class]])
+    {
+        if ([badgeArg isEqualToString:@"true"]) {
+            notificationTypes |= UIRemoteNotificationTypeBadge;
+        }
+    }
+    else if ([badgeArg boolValue]) {
+        notificationTypes |= UIRemoteNotificationTypeBadge;
+    }
+    
+    if ([soundArg isKindOfClass:[NSString class]])
+    {
+        if ([soundArg isEqualToString:@"true"]) {
+            notificationTypes |= UIRemoteNotificationTypeSound;
+        }
+    }
+    else if ([soundArg boolValue]) {
+        notificationTypes |= UIRemoteNotificationTypeSound;
+    }
+    
+    if ([alertArg isKindOfClass:[NSString class]])
+    {
+        if ([alertArg isEqualToString:@"true"]) {
+            notificationTypes |= UIRemoteNotificationTypeAlert;
+        }
+    }
+    else if ([alertArg boolValue]) {
+        notificationTypes |= UIRemoteNotificationTypeAlert;
+    }
+    
+    notificationTypes |= UIRemoteNotificationTypeNewsstandContentAvailability;
+    
+    self.callback = [options objectForKey:@"ecb"];
+    
+    if (notificationTypes == UIRemoteNotificationTypeNone)
+        NSLog(@"PushPlugin.register: Push notification type is set to none");
+    
+    isInline = NO;
+    
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes: notificationTypes];
+    
+    if (notificationMessage)			// if there is a pending startup notification
+        [self notificationReceived];	// go ahead and process it
+
+}
+
+
+- (void)register:(CDVInvokedUrlCommand*)command;
+{
+    BOOL is8 = [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0;
+    if (is8 == YES) {
+        [self registerEight:command];
+    } else {
+        [self registerOther:command];
+    }    
+}
+
 - (void)register:(CDVInvokedUrlCommand*)command;
 {
 	self.callbackId = command.callbackId;
